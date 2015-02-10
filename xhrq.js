@@ -66,7 +66,7 @@
           try {
             callback.call(this, JSON.parse(data));
           } catch (e) {
-            callback.call(this, data);
+            if (~e.message.indexOf('Unexpected token')) callback.call(this, data);
           }
         } else if (dataType === 'xml') {
           callback.call(this, (new DOMParser()).parseFromString(data, 'text/xml'));
