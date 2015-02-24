@@ -161,8 +161,8 @@
 
       this.Type = DeviceInfo.getDeviceType();
 
-      window.addEventListener('message', function(evt) {
-        var message = evt.data;
+      window.addEventListener('pubsub', function(evt) {
+        var message = evt.detail;
         if (!message.type || !message.type.startsWith(NAMESPACE) || message.origin === _this.Id) return;
         _this.sendMessage(message.type.slice(NAMESPACE.length), message.data, message.token);
       });
@@ -224,7 +224,13 @@
           break;
         case 'message':
           message.origin = this.Id;
-          window.postMessage(message, window.location.origin);
+          var topicParts = ['pubsub'];
+          window.dispatchEvent(new CustomEvent('pubsub', { detail: message }));
+          message.data.topic.split('.').filter(function(n) { return n != ''; }).forEach(function(t) {
+            topicParts.push(t);
+            message.data.topic = topicParts.slice(1).join('.');
+            window.dispatchEvent(new CustomEvent(topicParts.join('.'), { detail: message }));
+          });
           break;
         case 'move-tile':
           var nt = document.createElement(message.data.type);
