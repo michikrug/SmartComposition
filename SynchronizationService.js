@@ -234,20 +234,18 @@
           break;
         case 'move-tile':
           var nt = document.createElement(message.data.type);
-          nt.style.width  = '300px';
-          nt.style.height = '300px';
-          nt.setAttribute('width', message.data.width);
-          nt.setAttribute('height', message.data.height);
-          nt.style.position = 'absolute';
-          nt.style.left = 'calc(50% - 150px)';
-          nt.style.top  = 'calc(50% - 150px)';
           if (message.data.content) nt.innerHTML = message.data.content;
-          document.body.appendChild(nt);
-          if (message.data.data) {
-            nt._skip = true;
-            nt.LastMessage = message.data.data;
-            nt.handleMessage(message.data.data.data);
+          if (message.data.state) {
+            Object.getOwnPropertyNames(message.data.state).forEach(function(prop) {
+              nt[prop] = message.data.state[prop];
+            }, nt);
           }
+          nt.style.width  = message.data.width || '200px';
+          nt.style.height = message.data.height || '200px';
+          // nt.style.position = 'absolute';
+          // nt.style.left = 'calc(50% - 150px)';
+          // nt.style.top  = 'calc(50% - 150px)';
+          document.body.appendChild(nt);
           break;
         case 'ping':
           this.sendMessage('pong');
