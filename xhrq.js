@@ -11,7 +11,7 @@
 
     cache: JSON.parse(localStorage.getItem('_xhrq_cache')) || [],
 
-    cacheValidity: 2*60*60*1000,
+    cacheValidity: 2 * 60 * 60 * 1000,
 
     resetCache: function() {
       this.cache = [];
@@ -22,7 +22,7 @@
       this.cache.forEach(function(entry) {
         if (entry.urlHash === urlHash) this.cache.splice(this.cache.indexOf(entry), 1);
       }, this);
-      this.cache.push({ urlHash: urlHash, timestamp: (new Date()).getTime(), data: data });
+      this.cache.push({urlHash: urlHash, timestamp: (new Date()).getTime(), data: data});
     },
 
     getCacheEntry: function(urlHash) {
@@ -48,14 +48,6 @@
       var s = [];
       for (var p in o) if (o.hasOwnProperty(p)) s.push(encodeURIComponent(p) + '=' + encodeURIComponent(o[p]));
       return s.join('&');
-    },
-
-    get: function(url, callback, data, dataType, skipCache) {
-      return this.execute('GET', url, callback, data, dataType, skipCache);
-    },
-
-    post: function(url, callback, data, dataType, skipCache) {
-      return this.execute('POST', url, callback, data, dataType, skipCache);
     },
 
     execute: function(method, url, callback, data, dataType, skipCache) {
@@ -155,6 +147,9 @@
       return request;
     }
   };
+
+  xhrq.get = xhrq.execute.bind(xhrq, 'GET');
+  xhrq.post = xhrq.execute.bind(xhrq, 'POST');
 
   scope.xhrq = xhrq;
 
