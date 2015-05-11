@@ -235,11 +235,7 @@
         case 'move-tile':
           var nt = document.createElement(message.data.type);
           if (message.data.content) nt.innerHTML = message.data.content;
-          if (message.data.state) {
-            Object.getOwnPropertyNames(message.data.state).forEach(function(prop) {
-              nt[prop] = message.data.state[prop];
-            }, nt);
-          }
+          if (message.data.state) nt.setState(message.data.state);
           nt.style.width  = message.data.width || '200px';
           nt.style.height = message.data.height || '200px';
           // nt.style.position = 'absolute';
