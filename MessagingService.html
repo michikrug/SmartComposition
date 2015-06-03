@@ -21,12 +21,16 @@
   };
 
   var loadScript = function(src, callback) {
-    if (document.querySelector('script[src="' + src + '"]')) return;
+    var script = document.querySelector('script[src="' + src + '"]');
+    if (script) {
+      callback && (script.loaded && callback.call()) || script.addEventListener('load', callback);
+      return;
+    }
     var script = document.createElement('script');
     script.async = 1;
     script.defer = 1;
     script.src = src;
-    if (callback) script.onload = callback;
+    script.addEventListener('load', function() { this.loaded = true; callback && callback.call(); });
     document.body.appendChild(script);
   };
 
@@ -169,7 +173,12 @@
       'authenticate(session, clientName, clientId, deviceType)'
     ],
 
+    isConnected: function() {
+      return this._socket && this._socket.readyState === 1;
+    },
+
     created: function() {
+      if (typeof window.MessagingService !== 'object') window.MessagingService = { ConnectedEndpoints: [] };
       this._messageHandler = (function(evt) {
         var message = evt.detail;
         if (!message.type || !message.type.startsWith(NAMESPACE) || message.origin === this.clientId) return;
@@ -179,26 +188,24 @@
 
     attached: function() {
       this.initSocket();
-
       window.addEventListener('pubsub', this._messageHandler);
     },
 
     detached: function() {
       window.removeEventListener('pubsub', this._messageHandler);
-
-      this._socket && this._socket.readyState === 1 && this._socket.close();
+      if (this.isConnected()) this._socket.close();
     },
 
     _reconnect: function() {
-      if (!this._socket) return;
-      this._socket.readyState === 1 && this._socket.close();
-      this.initSocket();
+      if (this.isConnected()) this._socket.close();
+      if (this._socket) this.initSocket();
     },
 
     initSocket: function() {
       var _this = this;
 
-      if (typeof this.endpoint !== 'string' || (this._socket && this._socket.readyState === 1)) return;
+      if (typeof this.endpoint !== 'string' || this.isConnected()) return;
+      if (~window.MessagingService.ConnectedEndpoints.indexOf(_this.endpoint)) return;
 
       if (this.endpoint.startsWith('ws://') && typeof WebSocket === 'function') {
         console.log('Using WebSocket');
@@ -212,14 +219,17 @@
         return;
       }
 
+      window.MessagingService.ConnectedEndpoints.push(_this.endpoint);
+
       this._socket.onopen = function() {
         _this._retryTime = 1000;
       };
       this._socket.onclose = function() {
+        window.MessagingService.ConnectedEndpoints.splice(window.MessagingService.ConnectedEndpoints.indexOf(_this.endpoint) ,1);
         console.log('Connection closed');
         _this.clients = [];
-        //_this._retryTime = _this._retryTime < 60000 ? _this._retryTime * 2 : _this._retryTime;
-        //setTimeout(function() { _this.initSocket(); }, _this._retryTime);
+        _this._retryTime = _this._retryTime < 60000 ? _this._retryTime * 2 : _this._retryTime;
+        if (_this.isAttached) setTimeout(function() { _this.initSocket(); }, _this._retryTime);
       };
       this._socket.onmessage = function(message) {
         try {
