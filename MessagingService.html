@@ -1,4 +1,4 @@
-<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../polymer/dist/polymer.html">
 
 <script>
 (function() {
@@ -8,7 +8,7 @@
 
   var addElement = function(data) {
     var nt = document.createElement(data.type);
-    if (data.content) nt.innerHTML = data.content;
+    if (data.content) Polymer.dom(nt).innerHTML = data.content;
     if (data.className) nt.className = data.className;
     if (data.css) nt.style.cssText  = data.css;
     if (data.state && typeof nt.getState === 'function') nt.setState(data.state);
@@ -311,7 +311,7 @@
         className: component.className,
         location:  component.fileLocation,
         state:     typeof component.getState === 'function' && component.getState(),
-        content:   component.innerHTML
+        content:   Polymer.dom(component).innerHTML
       });
       if (!copy) component.remove();
     }
