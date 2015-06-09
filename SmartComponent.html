@@ -180,17 +180,18 @@
         return this;
       };
 
-      if (this.shadowRoot.children.length === 0) return;
+      if (Polymer.dom(this.root).children.length === 0) return;
 
       var toolbarDiv = document.createElement('div');
       toolbarDiv.setAttribute('id', tbId.substr(1));
       toolbarDiv.className = 'toolbar';
       toolbarDiv.innerHTML = '<div class="buttons left"><div class="listen button">L</div><div class="publish button">P</div></div><div class="buttons right"><div class="clients button"><span>v</span><ul class="dropdown"></ul></div><div class="maximize button">F</div><div class="close button">X</div></div>';
-      this.shadowRoot.appendChild(toolbarDiv);
+      Polymer.dom(this.root).appendChild(toolbarDiv);
 
       var style = document.createElement('style');
       style.appendChild(document.createTextNode(''));
-      _this.shadowRoot.appendChild(style);
+      Polymer.dom(this.root).appendChild(style);
+
       if (navigator.userAgent.toLowerCase().indexOf('firefox') === -1) {
         style.sheet.insertRule(":host { position: relative; }", 0);
         addStyle();
