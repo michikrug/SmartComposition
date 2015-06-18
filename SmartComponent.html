@@ -187,7 +187,7 @@
       var toolbarDiv = document.createElement('div');
       toolbarDiv.setAttribute('id', tbId.substr(1));
       toolbarDiv.className = 'toolbar';
-      toolbarDiv.innerHTML = '<div class="buttons left"><div class="listen button">L</div><div class="publish button">P</div></div><div class="buttons right"><div class="clients button"><span>v</span><ul class="dropdown"></ul></div><div class="maximize button">F</div><div class="close button">X</div></div>';
+      toolbarDiv.innerHTML = '<div class="buttons left"><div class="listen button">L</div><div class="publish button">P</div>&nbsp;&nbsp;<div class="style button">S</div></div><div class="buttons right"><div class="clients button"><span>v</span><ul class="dropdown"></ul></div><div class="maximize button">F</div><div class="close button">X</div></div>';
       Polymer.dom(this.root).appendChild(toolbarDiv);
 
       var style = document.createElement('style');
@@ -314,6 +314,14 @@
         clientsButton.on('mouseenter click', createClientsList);
         toolbarDiv.on('mouseenter', createClientsList);
         createClientsList();
+      }
+
+      var styleButton = qS('.style.button');
+      if (styleButton) {
+        styleButton.on('click', function() {
+          var input = prompt('Style', _this.style.cssText);
+          if (input !== null) _this.style.cssText = input;
+        });
       }
 
       function createClientsList() {
