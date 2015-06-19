@@ -315,9 +315,9 @@
       this.sendMessage('authentication', { id: this.clientId, name: this.clientName, session: this.session, type: this.deviceType });
     },
 
-    migrateComponent: function(component, clientId, copy) {
+    migrateComponent: function(component, client, copy) {
       this.sendMessage('move-tile', {
-        client:    clientId,
+        client:    typeof client === 'object' ? client.id : client,
         type:      component.tagName.toLowerCase(),
         css:       component.style.cssText,
         className: component.className,
