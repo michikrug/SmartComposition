@@ -62,7 +62,7 @@
             target = this.parseConnectionString(this.target);
         if (!target) return;
         if (this.transformation) value = this.transformationFunction.call(this, value);
-        this.fire('linkedAttributeChanged', { selector: target.selector, attribute: target.attribute, value: value });
+        this.fire('linkedAttributeChanged', { selector: target.selector, attribute: target.attribute, value: value }, { node: this.parentNode });
         if (this.noLocalLink) return;
         var elements = document.querySelectorAll(target.selector);
         for (var i = 0, c = elements.length; i < c; i++) {

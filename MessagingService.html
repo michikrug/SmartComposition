@@ -201,35 +201,18 @@
         this._sendAttributeChangedMessage = (function(evt) {
           this.sendMessage('message', { type: 'linkedAttributeChanged', data: evt.detail });
         }).bind(this);
-        this.attributeLinks = [];
       },
 
       attached: function() {
-        this.mutationObserver = new MutationObserver(this.checkAttributeLinks.bind(this));
-        this.mutationObserver.observe(this, { childList: true });
-        this.checkAttributeLinks();
         this.initSocket();
         window.addEventListener('pubsub', this._messageHandler);
+        this.addEventListener('linkedAttributeChanged', this._sendAttributeChangedMessage);
       },
 
       detached: function() {
+        this.removeEventListener('linkedAttributeChanged', this._sendAttributeChangedMessage);
         window.removeEventListener('pubsub', this._messageHandler);
         if (this.connected) this._socket.close();
-        this.mutationObserver.disconnect();
-        this.mutationObserver = null;
-      },
-
-      checkAttributeLinks: function() {
-        for (var r in this.attributeLinks) {
-          this.attributeLinks[r].removeEventListener('linkedAttributeChanged', this._sendAttributeChangedMessage);
-        }
-        this.attributeLinks = [];
-        for (var i = 0, child = this.children[i]; i < this.children.length; i++, child = this.children[i]) {
-          if (child.nodeName.toLowerCase() === 'attribute-link') {
-            child.addEventListener('linkedAttributeChanged', this._sendAttributeChangedMessage);
-            this.attributeLinks.push(child);
-          }
-        }
       },
 
       _reconnect: function() {
