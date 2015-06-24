@@ -134,10 +134,6 @@
       };
     }
 
-    if (!window.location.origin) {
-      window.location.origin = window.location.protocol + "//" + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
-    }
-
     Polymer({
       is: 'messaging-service',
       properties: {
@@ -173,7 +169,7 @@
         clientId: {
           type: String,
           notify: true,
-          value: DeviceInfo.getDeviceType()
+          value: null
         },
         clients: {
           type: Object,
