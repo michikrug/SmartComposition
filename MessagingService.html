@@ -141,15 +141,16 @@
     Polymer({
       is: 'messaging-service',
       properties: {
+        clientLibPath: {
+          type: String,
+          value: '//cdnjs.cloudflare.com/ajax/libs/sockjs-client/0.3.4/sockjs.min.js',
+          readOnly: true
+        },
         endpoint: {
           type: String,
           value: 'http://apfel.informatik.tu-chemnitz.de:9000',
           reflectToAttribute: true,
-          observer: '_reconnect'
-        },
-        clientLibPath: {
-          type: String,
-          value: '//cdnjs.cloudflare.com/ajax/libs/sockjs-client/0.3.4/sockjs.min.js'
+          observer: 'reconnect'
         },
         session: {
           type: String,
@@ -183,7 +184,8 @@
           type: Boolean,
           notify: true,
           reflectToAttribute: true,
-          value: false
+          value: false,
+          readOnly: true
         }
       },
 
@@ -204,7 +206,7 @@
       },
 
       attached: function() {
-        this.initSocket();
+        this.connect();
         window.addEventListener('pubsub', this._messageHandler);
         this.addEventListener('linkedAttributeChanged', this._sendAttributeChangedMessage);
       },
@@ -212,15 +214,23 @@
       detached: function() {
         this.removeEventListener('linkedAttributeChanged', this._sendAttributeChangedMessage);
         window.removeEventListener('pubsub', this._messageHandler);
-        if (this.connected) this._socket.close();
+        this.disconnect();
       },
 
-      _reconnect: function() {
-        if (this.connected) this._socket.close();
-        if (this._socket) this.initSocket();
+      reconnect: function() {
+        if (!this.isAttached) return;
+        this.disconnect();
+        this.connect();
       },
 
-      initSocket: function() {
+      disconnect: function() {
+        if (this.connected) {
+          this._setConnected(false);
+          this._socket.close();
+        }
+      },
+
+      connect: function() {
         var _this = this;
 
         if (typeof this.endpoint !== 'string' || this.connected) return;
@@ -234,23 +244,23 @@
           this._socket = new SockJS(this.endpoint);
         } else {
           console.log('No Socket support. Loading SockJS library.');
-          loadScript(this.clientLibPath, this.initSocket.bind(this));
+          loadScript(this.clientLibPath, this.connect.bind(this));
           return;
         }
 
         window.MessagingService.ConnectedEndpoints.push(this.endpoint + '/#' + this.session);
 
         this._socket.onopen = function() {
-          _this.connected = true;
+          _this._setConnected(true);
           _this._retryTime = 1000;
         };
         this._socket.onclose = function() {
-          _this.connected = false;
           window.MessagingService.ConnectedEndpoints.splice(window.MessagingService.ConnectedEndpoints.indexOf(_this.endpoint + '/#' + _this.session), 1);
-          console.log('Connection closed');
           _this.clients = [];
           _this._retryTime = _this._retryTime < 60000 ? _this._retryTime * 2 : _this._retryTime;
-          if (_this.isAttached) setTimeout(function() { _this.initSocket(); }, _this._retryTime);
+          if (_this.isAttached && _this.connected) setTimeout(function() { _this.connect(); }, _this._retryTime);
+          _this._setConnected(false);
+          console.log('Connection closed');
         };
         this._socket.onmessage = function(message) {
           try {
