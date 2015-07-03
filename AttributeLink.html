@@ -66,7 +66,7 @@
         if (this.noLocalLink) return;
         var elements = document.querySelectorAll(target.selector);
         for (var i = 0, c = elements.length; i < c; i++) {
-          if (value !== elements[i].getAttribute(target.attribute)) elements[i].setAttribute(target.attribute, value);
+          if (typeof value !== 'undefined' && value !== elements[i].getAttribute(target.attribute)) elements[i].setAttribute(target.attribute, value);
         }
       },
       parseConnectionString: function(str) {
