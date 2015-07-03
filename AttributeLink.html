@@ -62,11 +62,12 @@
             target = this.parseConnectionString(this.target);
         if (!target) return;
         if (this.transformation) value = this.transformationFunction.call(this, value);
+        if (typeof value === 'undefined') return;
         this.fire('linkedAttributeChanged', { selector: target.selector, attribute: target.attribute, value: value }, { node: this.parentNode });
         if (this.noLocalLink) return;
         var elements = document.querySelectorAll(target.selector);
         for (var i = 0, c = elements.length; i < c; i++) {
-          if (typeof value !== 'undefined' && value !== elements[i].getAttribute(target.attribute)) elements[i].setAttribute(target.attribute, value);
+          if (value !== elements[i].getAttribute(target.attribute)) elements[i].setAttribute(target.attribute, value);
         }
       },
       parseConnectionString: function(str) {
