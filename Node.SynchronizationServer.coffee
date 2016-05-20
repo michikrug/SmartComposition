@@ -3,7 +3,7 @@
 _      = require 'lodash'
 http   = require 'http'
 sockjs = require 'sockjs'
-port   = 9000
+port   = 9001
 
 if typeof String.prototype.startsWith isnt 'function'
   String.prototype.startsWith = (str) ->
@@ -111,7 +111,7 @@ class ConnectionHandler
     client.send message if client
 
   getClientsOfSession: (session, includeSelf = true) ->
-    clientsOfSession = _.select clients, { session: (session || @session) }
+    clientsOfSession = _.filter clients, { session: (session || @session) }
     _.pull clientsOfSession, @ unless includeSelf
     return clientsOfSession
 
@@ -124,7 +124,7 @@ server.addListener 'upgrade', (req, res) ->
   res.end()
   return
 
-sockjs_server = sockjs.createServer { sockjs_url: '//cdnjs.cloudflare.com/ajax/libs/sockjs-client/0.3.4/sockjs.min.js' }
+sockjs_server = sockjs.createServer { sockjs_url: '//cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.0/sockjs.min.js' }
 
 sockjs_server.on 'connection', (connection) ->
   console.log ' [*] Connection'
