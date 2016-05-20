@@ -3,7 +3,7 @@
   <script>
     Polymer({
       is: 'attribute-link',
-      fileLocation: 'http://apfel.informatik.tu-chemnitz.de/polymer/SmartComposition/AttributeLink.html',
+      fileLocation: 'components/AttributeLink.html',
       properties: {
         source: {
           type: String,
@@ -41,6 +41,16 @@
       setupAttributeObservers: function() {
         if (!this.isAttached) return;
         this.removeAttributeObservers();
+        this.bodyChanged = false;
+
+        this.bodyMutationObserver = new MutationObserver((function() {
+          this.async(function() {
+            if (this.bodyChanged) this.setupAttributeObservers();
+          }, 1000);
+          this.bodyChanged = true;
+        }).bind(this));
+        this.bodyMutationObserver.observe(document.body, { childList: true, subtree: true });
+
         var source = this.parseConnectionString(this.source);
         if (!source) return;
         var elements = document.querySelectorAll(source.selector);
@@ -51,6 +61,10 @@
         }
       },
       removeAttributeObservers: function() {
+        if (this.bodyMutationObserver) {
+          this.bodyMutationObserver.disconnect();
+          this.bodyMutationObserver = null;
+        }
         for (var i in this.mutationObservers) {
           this.mutationObservers[i].disconnect();
           this.mutationObservers[i] = null;
@@ -68,6 +82,7 @@
         var elements = document.querySelectorAll(target.selector);
         for (var i = 0, c = elements.length; i < c; i++) {
           if (value !== elements[i].getAttribute(target.attribute)) elements[i].setAttribute(target.attribute, value);
+          if (target.attribute == 'value') elements[i][target.attribute] = value;
         }
       },
       parseConnectionString: function(str) {
