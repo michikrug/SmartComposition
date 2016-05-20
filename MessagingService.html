@@ -1,5 +1,3 @@
-<link rel="import" href="../polymer/dist/polymer.html">
-
 <dom-module id="messaging-service">
 
   <script>
@@ -11,15 +9,30 @@
     var addElement = function(data) {
       var nt = document.createElement(data.type);
       if (data.content) Polymer.dom(nt).innerHTML = data.content;
+      if (data.id) nt.id = data.id;
       if (data.className) nt.className = data.className;
       if (data.css) nt.style.cssText  = data.css;
-      if (data.state && typeof nt.getState === 'function') nt.setState(data.state);
+      if (data.state) setState(nt, data.state);
       // nt.style.width  = data.width || '200px';
       // nt.style.height = data.height || '200px';
       // nt.style.position = 'absolute';
       // nt.style.left = 'calc(50% - 150px)';
       // nt.style.top  = 'calc(50% - 150px)';
       document.body.appendChild(nt);
+    };
+
+    var getState = function(component) {
+      var state = {};
+      component.properties && Object.getOwnPropertyNames(component.properties).forEach(function(prop) {
+        state[prop] = this[prop];
+      }, component);
+      return state;
+    };
+
+    var setState = function(component, state) {
+      state && Object.getOwnPropertyNames(state).forEach(function(prop) {
+        if (component.properties[prop]) component[prop] = state[prop];
+      }, component);
     };
 
     var loadScript = function(src, callback) {
@@ -139,12 +152,12 @@
       properties: {
         clientLibPath: {
           type: String,
-          value: '//cdnjs.cloudflare.com/ajax/libs/sockjs-client/0.3.4/sockjs.min.js',
+          value: '//cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.1.0/sockjs.min.js',
           readOnly: true
         },
         endpoint: {
           type: String,
-          value: 'http://apfel.informatik.tu-chemnitz.de:9000',
+          value: 'http://134.109.193.78:9000',
           reflectToAttribute: true,
           observer: 'reconnect'
         },
@@ -353,10 +366,11 @@
         this.sendMessage('move-tile', {
           client:    typeof client === 'object' ? client.id : client,
           type:      component.tagName.toLowerCase(),
+          id:        component.id,
           css:       component.style.cssText,
           className: component.className,
           location:  component.fileLocation,
-          state:     typeof component.getState === 'function' && component.getState(),
+          state:     getState(component),
           content:   Polymer.dom(component).innerHTML
         });
         if (!copy) component.remove();

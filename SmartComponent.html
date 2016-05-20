@@ -1,5 +1,3 @@
-<link rel="import" href="../polymer/dist/polymer.html">
-
 <script defer src="xhrq.js"></script>
 
 <script>
@@ -31,23 +29,6 @@
 
     detached: function() {
       this._deactivatePubSubListener();
-    },
-
-     // get state object by collecting all published properties
-    getState: function() {
-      var state = {};
-      this.properties && Object.getOwnPropertyNames(this.properties).forEach(function(prop) {
-        state[prop] = this[prop];
-      }, this);
-      return state;
-    },
-
-    // set state by setting properties to given values
-    setState: function(state) {
-      state && Object.getOwnPropertyNames(state).forEach(function(prop) {
-        if (this.properties[prop]) this[prop] = state[prop];
-      }, this);
-      return this;
     },
 
     _initPubSub: function(state) {
@@ -409,8 +390,8 @@
       if (typeof $ === 'function' && $.ui) {
         makeDraggable();
       } else {
-        loadScript("//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js", function() {
-          loadScript("//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js", function() { makeDraggable(); });
+        loadScript("//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js", function() {
+          loadScript("//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js", function() { makeDraggable(); });
         });
       }
     }
