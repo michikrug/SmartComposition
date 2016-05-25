@@ -1,0 +1,17 @@
+{
+  "name": "smartcomposition",
+  "description": "SmartComposition Server, Components and Helpers",
+  "main": "Node.SynchronizationServer.js",
+  "authors": [
+    "Michael Krug"
+  ],
+  "homepage": "https://github.com/michikrug/SmartComposition",
+  "private": true,
+  "ignore": [
+    "node_modules",
+    "bower_components"
+  ],
+  "dependencies": {
+    "polymer": "^1.4.0"
+  }
+}
