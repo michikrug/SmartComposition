@@ -1,0 +1,19 @@
+{
+  "name": "smartcomposition",
+  "version": "0.1.0",
+  "description": "SmartComposition Server, Components and Helpers",
+  "main": "Node.SynchronizationServer.js",
+  "dependencies": {
+    "sockjs": "^0.3.15",
+    "lodash": "^3.10.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michikrug/SmartComposition.git"
+  },
+  "author": "Michael Krug",
+  "bugs": {
+    "url": "https://github.com/michikrug/SmartComposition/issues"
+  },
+  "homepage": "https://github.com/michikrug/SmartComposition#readme"
+}
