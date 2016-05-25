@@ -6,21 +6,14 @@
   (function() {
     "use strict";
 
-    var NAMESPACE = 'SmartComposition.';
-
     var addElement = function(data) {
-      var nt = document.createElement(data.type);
-      if (data.content) Polymer.dom(nt).innerHTML = data.content;
-      if (data.id) nt.id = data.id;
-      if (data.className) nt.className = data.className;
-      if (data.css) nt.style.cssText  = data.css;
-      if (data.state) setState(nt, data.state);
-      // nt.style.width  = data.width || '200px';
-      // nt.style.height = data.height || '200px';
-      // nt.style.position = 'absolute';
-      // nt.style.left = 'calc(50% - 150px)';
-      // nt.style.top  = 'calc(50% - 150px)';
-      document.body.appendChild(nt);
+      var element = document.createElement(data.type);
+      if (data.content)   Polymer.dom(element).innerHTML = data.content;
+      if (data.id)        element.id = data.id;
+      if (data.className) element.className = data.className;
+      if (data.css)       element.style.cssText  = data.css;
+      if (data.state)     setState(element, data.state);
+      document.body.appendChild(element);
     };
 
     var getState = function(component) {
@@ -53,7 +46,7 @@
 
     var DeviceInfo = {
 
-      getVersion : function(name) {
+      getVersion: function(name) {
         if (name.toLowerCase() === 'safari') name = 'version';
         if (name) {
           return new RegExp(name + '[\\/ ]([\\d\\w\\.-]+)', 'i').exec(navigator.replace(/Trident\/7\.0;/i, 'Trident/7.0; MSIE/11.0;').userAgent) && RegExp.$1 || '';
@@ -63,7 +56,7 @@
         }
       },
 
-      getOs : function() {
+      getOs: function() {
         var operatingSystems = {
           'iPad': /ipad/i,
           'iPhone': /iphone/i,
@@ -87,7 +80,7 @@
         return '';
       },
 
-      getName : function() {
+      getName: function() {
         var names = ['Opera', 'Konqueror', 'Firefox', 'Chrome', 'Epiphany', 'Safari', 'MSIE', 'cURL', 'Maxthon'];
         for (var i = 0, len = names.length; i < len; ++i) {
           if (~navigator.userAgent.replace(/Trident\/7\.0;/i, 'Trident/7.0; MSIE/11.0;').toLowerCase().indexOf(names[i].toLowerCase())) return names[i];
@@ -95,7 +88,7 @@
         return '';
       },
 
-      getDeviceType : function() {
+      getDeviceType: function() {
         var devices = {
           tv: "TV",
           tablet: "Tablet",
@@ -110,9 +103,7 @@
 
         var ua = navigator.userAgent;
 
-        if (!ua || ua === '') {
-          return options.emptyUserAgentDeviceType;
-        }
+        if (!ua || ua === '') return options.emptyUserAgentDeviceType;
 
         if (ua.match(/Xbox|PLAYSTATION 3|Wii|GoogleTV|SmartTV|Internet TV|NetCast|NETTV|AppleTV|boxee|Kylo|Roku|DLNADOC|CE\-HTML/i)) {
           return devices.tv;
@@ -140,14 +131,7 @@
 
         return options.unknownUserAgentDeviceType;
       }
-
     };
-
-    if (typeof String.prototype.startsWith !== 'function') {
-      String.prototype.startsWith = function(str) {
-        return this.slice(0, str.length) === str;
-      };
-    }
 
     Polymer({
       is: 'messaging-service',
@@ -159,7 +143,7 @@
         },
         endpoint: {
           type: String,
-          value: 'http://134.109.193.78:9000',
+          value: null,
           reflectToAttribute: true,
           observer: 'reconnect'
         },
@@ -184,11 +168,13 @@
         clientId: {
           type: String,
           notify: true,
-          value: null
+          value: null,
+          readOnly: true
         },
         clients: {
           type: Object,
           notify: true,
+          readOnly: true,
           value: []
         },
         connected: {
@@ -201,19 +187,22 @@
       },
 
       observers: [
-        'authenticate(clientName, clientId, deviceType)'
+        'authenticate(clientName, deviceType)'
       ],
 
       created: function() {
+        this._retryTime = 1000;
         if (typeof window.MessagingService !== 'object') window.MessagingService = { ConnectedEndpoints: [] };
-        this._messageHandler = (function(evt) {
+
+        this._messageHandler = function(evt) {
           var message = evt.detail;
-          if (!message.type || !message.type.startsWith(NAMESPACE) || message.origin === this.clientId) return;
-          this.sendMessage(message.type.slice(NAMESPACE.length), message.data, message.token);
-        }).bind(this);
-        this._sendAttributeChangedMessage = (function(evt) {
+          if (!message.type || message.origin === this.clientId) return;
+          this.sendMessage(message.type, message.data, message.token);
+        }.bind(this);
+
+        this._sendAttributeChangedMessage = function(evt) {
           this.sendMessage('message', { type: 'linkedAttributeChanged', data: evt.detail });
-        }).bind(this);
+        }.bind(this);
       },
 
       attached: function() {
@@ -242,19 +231,17 @@
       },
 
       connect: function() {
-        var _this = this;
-
         if (typeof this.endpoint !== 'string' || this.connected) return;
         if (~window.MessagingService.ConnectedEndpoints.indexOf(this.endpoint + '/#' + this.session)) return;
 
-        if (this.endpoint.startsWith('ws://') && typeof WebSocket === 'function') {
+        if (this.endpoint.slice(0, 5) === 'ws://' && typeof WebSocket === 'function') {
           console.log('Using WebSocket');
           this._socket = new WebSocket(this.endpoint);
         } else if (typeof SockJS === 'function') {
           console.log('Using SockJS');
           this._socket = new SockJS(this.endpoint);
         } else {
-          console.log('No Socket support. Loading SockJS library.');
+          console.log('No Socket support or no WebSocket URI given. Loading SockJS library.');
           loadScript(this.clientLibPath, this.connect.bind(this));
           return;
         }
@@ -262,79 +249,78 @@
         window.MessagingService.ConnectedEndpoints.push(this.endpoint + '/#' + this.session);
 
         this._socket.onopen = function() {
-          _this._setConnected(true);
-          _this._retryTime = 1000;
-        };
+          this._retryTime = 1000;
+          this._setConnected(true);
+        }.bind(this);
+
         this._socket.onclose = function() {
-          window.MessagingService.ConnectedEndpoints.splice(window.MessagingService.ConnectedEndpoints.indexOf(_this.endpoint + '/#' + _this.session), 1);
-          _this.clients = [];
-          _this._retryTime = _this._retryTime < 60000 ? _this._retryTime * 2 : _this._retryTime;
-          if (_this.isAttached && _this.connected) setTimeout(function() { _this.connect(); }, _this._retryTime);
-          _this._setConnected(false);
+          window.MessagingService.ConnectedEndpoints.splice(window.MessagingService.ConnectedEndpoints.indexOf(this.endpoint + '/#' + this.session), 1);
+          this._retryTime = this._retryTime < 60000 ? this._retryTime * 2 : this._retryTime;
+          if (this.isAttached) setTimeout(this.connect.bind(this), this._retryTime);
+          this._setConnected(false);
+          this._setClientId(null);
+          this._setClients([]);
           console.log('Connection closed');
-        };
+        }.bind(this);
+
         this._socket.onmessage = function(message) {
           try {
-            _this.handleMessage.call(_this, JSON.parse(message.data));
+            this.handleMessage.call(this, JSON.parse(message.data));
           } catch (error) {
-            console.log(error);
+            console.log('ERROR', error);
           }
-        };
+        }.bind(this);
+
         this._socket.onerror = function(error) {
           console.log('ERROR', error);
         };
       },
 
       handleMessage: function(message) {
-        if (!message.type.startsWith(NAMESPACE)) return;
-        switch (message.type.slice(NAMESPACE.length)) {
+        var payload = message.data;
+        switch (message.type) {
           case 'authentication.request':
             this.authenticate();
             break;
           case 'authentication.answer':
-            if (message.data.id       && this.clientId    !== message.data.id)      this.clientId   = message.data.id;
-            if (message.data.name     && this.clientName  !== message.data.name)    this.clientName = message.data.name;
-            if (message.data.session  && this.session     !== message.data.session) this.session    = message.data.session;
+            if (payload.id       && this.clientId    !== payload.id)      this._setClientId(payload.id);
+            if (payload.name     && this.clientName  !== payload.name)    this.clientName = payload.name;
+            if (payload.session  && this.session     !== payload.session) this.session    = payload.session;
             break;
           case 'clients':
-            this.clients = message.data.clients;
+            this._setClients(payload.clients);
             break;
           case 'message':
-            if (message.data.type === 'linkedAttributeChanged') {
-              var t = message.data.data;
+            if (payload.type === 'linkedAttributeChanged') {
+              var t = payload.data;
               var elements = document.querySelectorAll(t.selector);
-              for (var i = 0, c = elements.length; i < c; i++) {
-                if (t.value !== elements[i].getAttribute(t.attribute)) elements[i].setAttribute(t.attribute, t.value);
+              for (var i = 0, e; e = elements[i]; i++) {
+                if (t.value !== e.getAttribute(t.attribute)) e.setAttribute(t.attribute, t.value);
               }
             } else {
               message.origin = this.clientId;
               var topicParts = ['pubsub'];
               this.fire('pubsub', message, {node: window});
-              message.data.topic.split('.').filter(function(n) { return n !== ''; }).forEach(function(t) {
+              payload.topic.split('.').filter(function(n) { return n !== ''; }).forEach(function(t) {
                 topicParts.push(t);
-                message.data.topic = topicParts.slice(1).join('.');
-                this.fire(topicParts.join('.'), message, {node: window});
+                payload.topic = topicParts.slice(1).join('.');
+                this.fire(topicParts.join('.'), message, { node: window });
               }, this);
             }
             break;
           case 'move-tile':
-            if (!~message.data.type.indexOf('-') || document.createElement(message.data.type).constructor !== HTMLElement) {
-              addElement(message.data);
-            } else if (message.data.location) {
+            if (!~payload.type.indexOf('-') || document.createElement(payload.type).constructor !== HTMLElement) {
+              addElement(payload);
+            } else if (payload.location) {
               var l = document.createElement('link');
               l.rel = 'import';
-              l.href = message.data.location;
-              l.addEventListener('load', function() { addElement(message.data); });
+              l.href = payload.location;
+              l.addEventListener('load', function() { addElement(payload); });
               document.head.appendChild(l);
             }
             break;
-          case 'ping':
-            this.sendMessage('pong');
-            break;
           case 'error':
-            console.log(message.data);
-            break;
-          default:
+            console.log(payload);
             break;
         }
       },
@@ -342,11 +328,7 @@
       sendMessage: function(type, message, token) {
         if (!this.connected) return;
         message = typeof message === 'undefined' ? null : message;
-        if (message) {
-          this._socket.send(JSON.stringify({ type: NAMESPACE + type, data: message, token: token }));
-        } else {
-          this._socket.send(JSON.stringify({ type: NAMESPACE + type }));
-        }
+        this._socket.send(JSON.stringify({ type: type, data: message, token: token }));
       },
 
       sessionChanged: function(newVal, oldVal) {
@@ -361,7 +343,7 @@
       },
 
       authenticate: function() {
-        this.sendMessage('authentication', { id: this.clientId, name: this.clientName, session: this.session, type: this.deviceType });
+        this.sendMessage('authentication', { name: this.clientName, session: this.session, type: this.deviceType });
       },
 
       migrateComponent: function(component, client, copy) {

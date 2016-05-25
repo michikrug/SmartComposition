@@ -6,8 +6,6 @@
 (function() {
   "use strict";
 
-  var NAMESPACE = 'SmartComposition.';
-
   Polymer.SmartComponentBehavior = {
 
     properties: {
@@ -40,7 +38,7 @@
       this._pubsub_messageHandler = (function(evt) {
         var message = evt.detail;
         if (!this._pubsub_listening) return;
-        if (!message.type || message.type !== NAMESPACE + 'message' || message.origin === this._pubsub_id) return;
+        if (!message.type || message.type !== 'message' || message.origin === this._pubsub_id) return;
         this._pubsub_subscriptions[message.data.topic] && this._pubsub_subscriptions[message.data.topic].forEach(function(current) {
           if (current.token && message.token && current.token === message.token) return;
           current.token = message.token;
@@ -95,16 +93,16 @@
       }
       if (typeof d.topic !== 'string') throw('Error: topic must be of type "string"');
       var topicParts = ['pubsub'], message = {
-        type: NAMESPACE + 'message',
+        type: 'message',
         data: d,
         origin: this._pubsub_id,
         token: token || Math.random().toString(36).substr(2, 17)
       };
-      this.fire('pubsub', message, {node: window});
+      this.fire('pubsub', message, { node: window });
       d.topic.split('.').filter(function(n) { return n != ''; }).forEach(function(t) {
         topicParts.push(t);
         message.data.topic = topicParts.slice(1).join('.');
-        this.fire(topicParts.join('.'), message, {node: window});
+        this.fire(topicParts.join('.'), message, { node: window });
       }, this);
       return this;
     },
