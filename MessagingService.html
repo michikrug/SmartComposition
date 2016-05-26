@@ -172,7 +172,7 @@
           readOnly: true
         },
         clients: {
-          type: Object,
+          type: Array,
           notify: true,
           readOnly: true,
           value: []
@@ -191,7 +191,6 @@
       ],
 
       created: function() {
-        this._retryTime = 1000;
         if (typeof window.MessagingService !== 'object') window.MessagingService = { ConnectedEndpoints: [] };
 
         this._messageHandler = function(evt) {
@@ -203,6 +202,9 @@
         this._sendAttributeChangedMessage = function(evt) {
           this.sendMessage('message', { type: 'linkedAttributeChanged', data: evt.detail });
         }.bind(this);
+
+        this._retry = true;
+        this._retryTime = 1000;
       },
 
       attached: function() {
@@ -224,10 +226,9 @@
       },
 
       disconnect: function() {
-        if (this.connected) {
-          this._setConnected(false);
-          this._socket.close();
-        }
+        if (!this.connected) return;
+        this._retry = false;
+        this._socket.close();
       },
 
       connect: function() {
@@ -241,7 +242,7 @@
           console.log('Using SockJS');
           this._socket = new SockJS(this.endpoint);
         } else {
-          console.log('No Socket support or no WebSocket URI given. Loading SockJS library.');
+          console.log('No WebSocket support or no ws:// URI given. Loading SockJS library.');
           loadScript(this.clientLibPath, this.connect.bind(this));
           return;
         }
@@ -249,17 +250,19 @@
         window.MessagingService.ConnectedEndpoints.push(this.endpoint + '/#' + this.session);
 
         this._socket.onopen = function() {
+          this._retry = true;
           this._retryTime = 1000;
           this._setConnected(true);
+          console.log('Connection established');
         }.bind(this);
 
         this._socket.onclose = function() {
           window.MessagingService.ConnectedEndpoints.splice(window.MessagingService.ConnectedEndpoints.indexOf(this.endpoint + '/#' + this.session), 1);
-          this._retryTime = this._retryTime < 60000 ? this._retryTime * 2 : this._retryTime;
-          if (this.isAttached) setTimeout(this.connect.bind(this), this._retryTime);
           this._setConnected(false);
           this._setClientId(null);
           this._setClients([]);
+          this._retryTime = this._retryTime < 60000 ? this._retryTime * 2 : this._retryTime;
+          if (this.isAttached && this._retry) setTimeout(this.connect.bind(this), this._retryTime);
           console.log('Connection closed');
         }.bind(this);
 
