@@ -5,7 +5,7 @@
 
   var xhrq = {
 
-    whiteList: [window.location.host, 'access.alchemyapi.com', 'vsr-demo.informatik.tu-chemnitz.de/chroomaplus/proxy/Proxy.ashx'],
+    whiteList: [window.location.host, 'api.apixu.com', 'access.alchemyapi.com', 'vsr-demo.informatik.tu-chemnitz.de/chroomaplus/proxy/Proxy.ashx'],
 
     proxyUrl: 'http://vsr-demo.informatik.tu-chemnitz.de/chroomaplus/proxy/Proxy.ashx?url=',
 
