@@ -5,6 +5,10 @@ var googleAccessToken = '';
 var twitterAccessToken = '';
 
 require('jsonfile').readFile('oauth.json', function(err, obj) {
+  if (err || obj == null) {
+    console.log('No or invalid "oauth.json" file found. Please provide one in the following format:', JSON.stringify({ "google": { "client_id": "", "client_secret": "", "refresh_token": "", "grant_type": "refresh_token" }, "twitter": { "access_token": "" } }));
+    return;
+  }
   twitterAccessToken = obj.twitter.access_token;
   request.post('https://accounts.google.com/o/oauth2/token', { form: obj.google }, function (error, response, body) {
     if (response.statusCode == 200) googleAccessToken = JSON.parse(body).access_token;
