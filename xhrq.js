@@ -5,9 +5,9 @@
 
   var xhrq = {
 
-    whiteList: [window.location.host, 'api.apixu.com', 'access.alchemyapi.com', 'vsr-demo.informatik.tu-chemnitz.de/chroomaplus/proxy/Proxy.ashx'],
+    whiteList: [window.location.host, 'api.apixu.com', 'access.alchemyapi.com'],
 
-    proxyUrl: 'http://vsr-demo.informatik.tu-chemnitz.de/chroomaplus/proxy/Proxy.ashx?url=',
+    proxyUrl: 'http://localhost/proxy/?url=',
 
     cache: JSON.parse(localStorage.getItem('_xhrq_cache')) || [],
 
