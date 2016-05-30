@@ -11,7 +11,7 @@ require('jsonfile').readFile('oauth.json', function(err, obj) {
   });
 });
 
-var serveStatic = require('serve-static')('../', { 'index': ['index.html'] });
+var serveStatic = require('serve-static')('./', { 'index': ['index.html'] });
 
 require('http').createServer(function(req, res){
   var reqUrl = url.parse(req.url, true);
