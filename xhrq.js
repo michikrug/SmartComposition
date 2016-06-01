@@ -7,7 +7,7 @@
 
     whiteList: [window.location.host, 'api.apixu.com', 'access.alchemyapi.com'],
 
-    proxyUrl: 'http://localhost/proxy/?url=',
+    proxyUrl: '/proxy/?url=',
 
     cache: JSON.parse(localStorage.getItem('_xhrq_cache')) || [],
 
