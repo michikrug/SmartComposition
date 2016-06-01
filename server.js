@@ -25,8 +25,18 @@ require('http').createServer(function(req, res){
       req.headers.host = targetUrl.host;
       if (targetUrl.host == 'api.twitter.com') req.headers.Authorization = 'Bearer ' + twitterAccessToken;
       if (targetUrl.host == 'www.googleapis.com') req.headers.Authorization = 'Bearer ' + googleAccessToken;
-      var options = { url: targetUrl,  headers: req.headers,  method: req.method };
-      request(options).on('error', function(e) { res.end(e); }).pipe(res);
+      var options = { url: targetUrl, headers: req.headers, method: req.method };
+      if (req.method == 'POST') {
+        var body = [];
+        req.on('data', function(chunk) {
+          body.push(chunk);
+        }).on('end', function() {
+          options.form = Buffer.concat(body).toString();
+          request(options).on('error', function(e) { res.end(e); }).pipe(res);
+        });
+      } else {
+        request(options).on('error', function(e) { res.end(e); }).pipe(res);
+      }
     } else {
       res.end('No "url" parameter found.');
     }
