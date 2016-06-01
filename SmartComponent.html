@@ -6,113 +6,6 @@
 (function() {
   "use strict";
 
-  Polymer.SmartComponentBehavior = {
-
-    properties: {
-      _pubsub_listening: {
-        type: Boolean,
-        value: true
-      },
-      _pubsub_publishing: {
-        type: Boolean,
-        value: true
-      }
-    },
-
-    created: function() {
-      this._initPubSub();
-    },
-
-    attached: function() {
-      this._activatePubSubListener();
-    },
-
-    detached: function() {
-      this._deactivatePubSubListener();
-    },
-
-    _initPubSub: function(state) {
-      if (typeof this._pubsub_messageHandler === 'function') return;
-      this._pubsub_id = Math.random().toString(36).substr(2, 17);
-      this._pubsub_subscriptions = {};
-      this._pubsub_messageHandler = (function(evt) {
-        var message = evt.detail;
-        if (!this._pubsub_listening) return;
-        if (!message.type || message.type !== 'message' || message.origin === this._pubsub_id) return;
-        this._pubsub_subscriptions[message.data.topic] && this._pubsub_subscriptions[message.data.topic].forEach(function(current) {
-          if (current.token && message.token && current.token === message.token) return;
-          current.token = message.token;
-          current.handler.call(this, message.data, message.token);
-        }, this);
-      }).bind(this);
-    },
-
-    subscribe: function(topic, handler) {
-      if (!topic || topic.length === 0) return this;
-      if (typeof handler !== 'function') handler = this.messageReceived;
-      var subs = this._pubsub_subscriptions[topic] || (this._pubsub_subscriptions[topic] = []);
-      if (subs.length < 1) window.addEventListener('pubsub.' + topic, this._pubsub_messageHandler);
-      subs.push({ handler: handler, token: null });
-      return this;
-    },
-
-    unsubscribe: function(topic, handler) {
-      if (!topic || topic.length === 0) return this;
-      if (typeof handler !== 'function') handler = this.messageReceived;
-      var subs = this._pubsub_subscriptions[topic] || [], found = -1;
-      if (subs.some(function(current, index) {
-        if (current.handler === handler) {
-          found = index;
-          return true;
-        }
-      })) subs.splice(found, 1);
-      if (subs.length < 1) window.removeEventListener('pubsub.' + topic, this._pubsub_messageHandler);
-      return this;
-    },
-
-    _activatePubSubListener: function() {
-      for (var topic in this._pubsub_subscriptions) {
-        window.addEventListener('pubsub.' + topic, this._pubsub_messageHandler);
-      }
-      return this;
-    },
-
-    _deactivatePubSubListener: function() {
-      for (var topic in this._pubsub_subscriptions) {
-        window.removeEventListener('pubsub.' + topic, this._pubsub_messageHandler);
-      }
-      return this;
-    },
-
-    publish: function(topic, data, token) {
-      if (!this._pubsub_publishing) return this;
-      var d = { topic: topic, data: data };
-      if (typeof topic === 'object') {
-        token = data;
-        d = topic;
-      }
-      if (typeof d.topic !== 'string') throw('Error: topic must be of type "string"');
-      var topicParts = ['pubsub'], message = {
-        type: 'message',
-        data: d,
-        origin: this._pubsub_id,
-        token: token || Math.random().toString(36).substr(2, 17)
-      };
-      this.fire('pubsub', message, { node: window });
-      d.topic.split('.').filter(function(n) { return n != ''; }).forEach(function(t) {
-        topicParts.push(t);
-        message.data.topic = topicParts.slice(1).join('.');
-        this.fire(topicParts.join('.'), message, { node: window });
-      }, this);
-      return this;
-    },
-
-    messageReceived: function(message) {
-      console.log(this, ' received message ', message);
-    }
-
-  }
-
   Polymer.InteractionBehavior = {
 
     properties: {
@@ -168,7 +61,7 @@
       var toolbarDiv = document.createElement('div');
       toolbarDiv.setAttribute('id', tbId.substr(1));
       toolbarDiv.className = 'toolbar';
-      toolbarDiv.innerHTML = '<div class="buttons left"><div class="listen button">L</div><div class="publish button">P</div>&nbsp;&nbsp;<div class="style button">S</div></div><div class="buttons right"><div class="clients button"><span>v</span><ul class="dropdown"></ul></div><div class="maximize button">F</div><div class="close button">X</div></div>';
+      toolbarDiv.innerHTML = '<div class="buttons left"><div class="style button">S</div></div><div class="buttons right"><div class="clients button"><span>v</span><ul class="dropdown"></ul></div><div class="maximize button">F</div><div class="close button">X</div></div>';
       Polymer.dom(this.root).appendChild(toolbarDiv);
 
       var style = document.createElement('style');
@@ -256,40 +149,6 @@
         });
       }
 
-      var listenButton = qS('.listen.button');
-      if (listenButton) {
-        if (this._pubsub_listening) {
-          listenButton.classList.remove('disabled');
-        } else {
-          listenButton.classList.add('disabled');
-        }
-        listenButton.on('click', function() {
-          _this._pubsub_listening = !_this._pubsub_listening;
-          if (_this._pubsub_listening) {
-            listenButton.classList.remove('disabled');
-          } else {
-            listenButton.classList.add('disabled');
-          }
-        });
-      }
-
-      var publishingButton = qS('.publish.button');
-      if (publishingButton) {
-        if (this._pubsub_publishing) {
-          publishingButton.classList.remove('disabled');
-        } else {
-          publishingButton.classList.add('disabled');
-        }
-        publishingButton.on('click', function() {
-          _this._pubsub_publishing = !_this._pubsub_publishing;
-          if (_this._pubsub_publishing) {
-            publishingButton.classList.remove('disabled');
-          } else {
-            publishingButton.classList.add('disabled');
-          }
-        });
-      }
-
       var clientsButton = qS('.clients.button');
       if (clientsButton) {
         clientsButton.on('mouseenter click', createClientsList);
@@ -331,10 +190,10 @@
 
       this.on('mouseover', function() {
         clearTimeout(_this.timer);
-        _this.timer = setTimeout(function() { toolbarDiv.style.display = 'block'; }, 500);
+        _this.timer = setTimeout(function() { toolbarDiv.style.display = 'block'; }, 2000);
       }).on('mouseout', function() {
         clearTimeout(_this.timer);
-        _this.timer = setTimeout(function() { toolbarDiv.style.display = 'none'; }, 750);
+        _this.timer = setTimeout(function() { toolbarDiv.style.display = 'none'; }, 500);
       });
 
       function maximize() {
@@ -390,7 +249,7 @@
       if (typeof $ === 'function' && $.ui) {
         makeDraggable();
       } else {
-        loadScript("//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js", function() {
+        loadScript("//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js", function() {
           loadScript("//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js", function() { makeDraggable(); });
         });
       }
