@@ -32,5 +32,5 @@ require('http').createServer(function(req, res){
     }
   } else {
     serveStatic(req, res, require('finalhandler')(req, res));
-  }  
-}).listen(80);
+  }
+}).listen(process.env.PORT || 80);
