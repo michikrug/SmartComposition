@@ -2,7 +2,7 @@ var _ = require('lodash');
 var http = require('http');
 var sockjs = require('sockjs');
 
-var PORT = 9001;
+var PORT = process.env.PORT || 9001;
 
 var ConnectionHandler = (function() {
   var clients = [];
