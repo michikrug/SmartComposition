@@ -1,7 +1,7 @@
 {
   "name": "smartcomposition",
-  "version": "0.1.2",
-  "description": "SmartComposition Server, Components and Helpers",
+  "version": "0.1.2a",
+  "description": "SmartComposition Server, Components and Helpers for vsr-demo deployment",
   "dependencies": {
     "bower": "^1.7.9",
     "lodash": "^3.10.1",
@@ -10,7 +10,8 @@
     "jsonfile": "^2.3.1",
     "request": "^2.72.0",
     "serve-static": "^1.10.2",
-    "url": "^0.11.0"
+    "url": "^0.11.0",
+    "node-windows": "^0.1.11"
   },
   "scripts": {
     "postinstall": "bower install"
