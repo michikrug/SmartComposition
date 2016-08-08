@@ -7,6 +7,6 @@
   "homepage": "https://github.com/michikrug/SmartComposition",
   "private": true,
   "dependencies": {
-    "polymer": "^1.5.0"
+    "polymer": "^1.6.1"
   }
 }
