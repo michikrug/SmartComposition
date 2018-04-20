@@ -3,13 +3,13 @@
   "version": "0.1.2",
   "description": "SmartComposition Server, Components and Helpers",
   "dependencies": {
-    "bower": "^1.7.9",
-    "lodash": "^4.14.1",
-    "sockjs": "^0.3.17",
-    "finalhandler": "^0.5.0",
-    "jsonfile": "^2.3.1",
-    "request": "^2.74.0",
-    "serve-static": "^1.11.1",
+    "bower": "^1.8.4",
+    "lodash": "^4.17.5",
+    "sockjs": "^0.3.19",
+    "finalhandler": "^1.1.1",
+    "jsonfile": "^4.0.0",
+    "request": "^2.85.0",
+    "serve-static": "^1.13.2",
     "url": "^0.11.0"
   },
   "scripts": {
