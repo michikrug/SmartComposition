@@ -5,7 +5,7 @@
 
   var xhrq = {
 
-    whiteList: [window.location.host, 'api.apixu.com', 'access.alchemyapi.com'],
+    whiteList: [window.location.host, 'api.apixu.com'],
 
     proxyUrl: '/proxy/?url=',
 
